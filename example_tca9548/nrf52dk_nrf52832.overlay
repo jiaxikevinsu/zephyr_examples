@@ -12,17 +12,41 @@
 // You can also visit the nRF DeviceTree extension documentation at https://nrfconnect.github.io/vscode-nrf-connect/devicetree/nrfdevicetree.html
 
 &i2c0 {
-    compatible = "nordic,nrf-twim";
     status = "okay";
+	compatible = "nordic,nrf-twim";
     pinctrl-0 = <&i2c0_default>;
 	pinctrl-1 = <&i2c0_sleep>;
 	pinctrl-names = "default", "sleep";
 
-    veml7700:veml7700@10{
-        compatible = "vishay,veml7700";
-        reg = < 0x10 >;
-        label = "VEML7700";
-    };
+	mux: tca9548a@70 {
+		compatible = "ti,tca9548a";
+		reg = <0x70>;
+		status = "okay";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ch0: mux_i2c@0 {
+			compatible = "ti,tca9548a-channel";
+			reg = <0>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			veml7700_0:veml7700@10{
+				compatible = "vishay,veml7700";
+				reg = <0x10>;
+			};
+		};
+
+		ch1: mux_i2c@1 {
+			compatible = "ti,tca9548a-channel";
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+			veml7700_1:veml7700@10{
+				compatible = "vishay,veml7700";
+				reg = <0x10>;
+			};
+        };
+	};
 };
 
 &pinctrl{
@@ -44,4 +68,11 @@
 
 &spi0 {
     status = "disabled";
+};
+
+/{
+	aliases {
+		i2c-channel-0 = &ch0;
+		i2c-channel-1 = &ch1;
+	};
 };
