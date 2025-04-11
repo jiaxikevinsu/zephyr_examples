@@ -82,7 +82,7 @@ struct tm get_rtc_time(const struct device *i2c_dev){
 	current_time.tm_sec = (((buf_sec & 112) >> 4) * 10) + (buf_sec & 15);//((buf_sec / 10) << 4) | (buf_sec % 10);
 	current_time.tm_min = (((buf_min & 112) >> 4) * 10) + (buf_min & 15);
 
-	int hour_calc = (((buf_hour & 16) >> 4) * 10) + (buf_hour & 15);
+	int hour_calc = (((buf_hour & 16) >> 4) * 10) + (buf_hour & 15); //this is wrong, bit 5 is used in the hour calculation for 24 hour time, but for AM PM for 12 hour time
 	if (((buf_hour & 64) >> 6) == 1){ //this means 12 hour format
 		if (((buf_hour & 32) >> 5) == 1){ //this means PM
 			//handle edge cases:
@@ -95,7 +95,7 @@ struct tm get_rtc_time(const struct device *i2c_dev){
 			}
 		}
 	} else {
-		current_time.tm_hour = hour_calc;  //24 hour time
+		current_time.tm_hour = hour_calc + (((buf_hour & 32) >> 5) * 20);  //24 hour time
 	}
 	current_time.tm_wday = buf_day;
 	current_time.tm_mday = (((buf_date & 48) >> 4) * 10) + (buf_date & 15);
@@ -107,13 +107,13 @@ struct tm get_rtc_time(const struct device *i2c_dev){
 }
 
 int main(void){
-	const struct device *const ds3231 = DEVICE_DT_GET_ONE(maxim_ds3231);
-	const struct device *const i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
+	const struct device *ds3231 = DEVICE_DT_GET_ONE(maxim_ds3231);
+	const struct device *i2c_dev = DEVICE_DT_GET(DT_NODELABEL(i2c0));
 
 	struct tm tm_set_time = {0};
 	tm_set_time.tm_sec = 0;		//seconds,  range 0 to 59
-	tm_set_time.tm_min = 40;		//minutes, range 0 to 59
-	tm_set_time.tm_hour = 17;		//hours, range 0 to 23
+	tm_set_time.tm_min = 36;		//minutes, range 0 to 59
+	tm_set_time.tm_hour = 22;		//hours, range 0 to 23
 
 	tm_set_time.tm_mday = 10;		//day of the month, range 1 to 31
 	tm_set_time.tm_mon = 3;		//month, range 0 to 11
